@@ -1,8 +1,10 @@
+import ide.watsonwong.general.FileService;
 import ide.watsonwong.general.PropertiesService;
 import ide.watsonwong.service.ExcelService;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -15,7 +17,9 @@ import java.util.Scanner;
 public class Application {
 
     static Properties properties;
-
+    
+    static List<List<HashMap>> datas;
+    static String sheetName;
 
     public static void main(String[] args){
 
@@ -24,9 +28,11 @@ public class Application {
         } catch (UnsupportedEncodingException e) {
             throw new InternalError("VM does not support mandatory encoding UTF-8");
         }
+        System.out.println(System.getProperty("os.name"));
 
         properties = new Properties();
         PropertiesService ps = new PropertiesService();
+        FileService fs = new FileService();
 
         try {
             properties = ps.readProperties();
@@ -42,42 +48,37 @@ public class Application {
         int before = Integer.parseInt(properties.getProperty("before"));
         int after = Integer.parseInt(properties.getProperty("after"));
         List<Object> firstRow = null;
-        List<List<HashMap>> datas = null;
-        String sheetName = null;
+        resetValue();
+
 
         //read excel
 
         try {
-            Workbook wbI = excelService.readExcel(properties.getProperty("importExcel"));
-            Sheet sheetI = excelService.openSheet(wbI);
-            sheetName = sheetI.getSheetName();
-            System.out.println("Sheet Name : " + sheetName);
-            firstRow = excelService.getFirstRow(sheetI, before, after);
-            datas = excelService.getDataRow(sheetI,before,after);
-//            System.out.println("First row size:" + firstRow.size());
-//            int row_size = 2;
-//            for(List<HashMap> data: datas) {
-//                System.out.println("Data row size:[" + + row_size++ + "]" + data.size());
-//                if(data.size() != firstRow.size()) {
-//                    System.out.println("Data row size:[" + + row_size++ + "]" + data.size());
-//                    for(HashMap mp: data) {
-//                        for ( Object key : mp.keySet() ) {
-//                            System.out.println(key + "||" + mp.get(key) );
-//
-//                        }
-//                    }
-//                }
-//            }
+            File[] fList = fs.readFiles(properties.getProperty("importExcel"));
+
+            for(File file: fList) {
+                Workbook wbI = excelService.readExcel(file);
+                Sheet sheetI = excelService.openSheet(wbI);
+                sheetName = sheetI.getSheetName();
+                System.out.println("Sheet Name : " + sheetName);
+                firstRow = excelService.getFirstRow(sheetI, before, after);
+                datas = excelService.getDataRow(sheetI,before,after);
+
+                //write excel
+                excelService.writeExcel(firstRow, datas, sheetName,
+                properties.getProperty("firstColumn"), properties.getProperty("secondColumn"), before, after,
+                properties.getProperty("exportExcel"));
+            }
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //write excel
-        excelService.writeExcel(firstRow, datas, sheetName,
-                properties.getProperty("firstColumn"), properties.getProperty("secondColumn"), before, after,
-                properties.getProperty("exportExcel"));
+    }
 
-
-
+    private static void resetValue() {
+        datas = null;
+        sheetName = null;
     }
 }

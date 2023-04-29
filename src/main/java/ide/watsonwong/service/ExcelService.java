@@ -1,5 +1,6 @@
 package ide.watsonwong.service;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -22,6 +23,19 @@ public class ExcelService {
         } catch (IOException eio) {
             eio.printStackTrace();
             throw eio;
+        }
+    }
+
+    public Workbook readExcel(File file) throws Exception {
+        try {
+            Workbook workbook = new XSSFWorkbook(file);
+            return workbook;
+        } catch (IOException eio) {
+            eio.printStackTrace();
+            throw eio;
+        } catch (InvalidFormatException eif) {
+            eif.printStackTrace();
+            throw eif;
         }
     }
 

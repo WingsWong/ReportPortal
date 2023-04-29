@@ -9,8 +9,12 @@ public class PropertiesService {
     private InputStream fileReader() throws Exception{
         try {
             System.out.println(this.getClass().getName());
-
-            InputStream inputStream = this.getClass().getResourceAsStream("/config.properties");
+            InputStream inputStream = null;
+            if (System.getProperty("os.name").startsWith("Mac")) {
+                inputStream = this.getClass().getResourceAsStream("/config.properties");
+            } else {
+                inputStream = this.getClass().getResourceAsStream("/config.properties");
+            }
             return inputStream;
         } catch (Exception e) {
             e.printStackTrace();
